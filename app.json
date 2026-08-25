@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Two-s",
+    "slug": "two-s-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B6E4F"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.coop.twos.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B6E4F",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "package": "br.coop.twos.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}
