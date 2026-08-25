@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -17,18 +16,20 @@ import { useApp } from '../../context/AppContext';
 import { DEMO_CREDENTIALS } from '../../fixtures';
 import type { AuthProps } from '../../navigation/types';
 import { authService } from '../../services';
-import { colors, spacing, typography } from '../../theme';
-import { formatCpf } from '../../utils/format';
+import { colors, radii, spacing, typography } from '../../theme';
+import { formatCpf, onlyDigits } from '../../utils/format';
 import { loginSchema, type LoginForm } from '../../validation/schemas';
 
 export function LoginScreen({ navigation }: AuthProps<'Login'>) {
   const { setUser } = useApp();
   const [loading, setLoading] = useState(false);
   const [bioLoading, setBioLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -39,24 +40,39 @@ export function LoginScreen({ navigation }: AuthProps<'Login'>) {
   });
 
   const onSubmit = async (data: LoginForm) => {
+    setFormError(null);
     setLoading(true);
     try {
       const user = await authService.login(data.document, data.password);
       setUser(user);
     } catch (e) {
-      Alert.alert('Falha no login', e instanceof Error ? e.message : 'Erro');
+      setFormError(e instanceof Error ? e.message : 'Falha no login');
     } finally {
       setLoading(false);
     }
   };
 
+  /** Fallback if resolver fails silently on web */
+  const onPressLogin = () => {
+    setFormError(null);
+    const values = getValues();
+    const docOk = onlyDigits(values.document ?? '').length === 11;
+    const passOk = (values.password ?? '').length >= 6;
+    if (!docOk || !passOk) {
+      handleSubmit(onSubmit)();
+      return;
+    }
+    void onSubmit(values);
+  };
+
   const onBiometrics = async () => {
+    setFormError(null);
     setBioLoading(true);
     try {
       const user = await authService.loginWithBiometrics();
       setUser(user);
     } catch (e) {
-      Alert.alert('Biometria', e instanceof Error ? e.message : 'Indisponível');
+      setFormError(e instanceof Error ? e.message : 'Biometria indisponível');
     } finally {
       setBioLoading(false);
     }
@@ -113,7 +129,13 @@ export function LoginScreen({ navigation }: AuthProps<'Login'>) {
           <Text style={styles.link}>Esqueci minha senha</Text>
         </Pressable>
 
-        <Button title="Entrar" onPress={handleSubmit(onSubmit)} loading={loading} testID="login-button" />
+        {formError ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{formError}</Text>
+          </View>
+        ) : null}
+
+        <Button title="Entrar" onPress={onPressLogin} loading={loading} testID="login-button" />
 
         <Button
           title="Entrar com biometria"
@@ -146,6 +168,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     alignSelf: 'flex-end',
   },
+  errorBox: {
+    backgroundColor: colors.errorBg,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  errorText: { color: colors.error, fontSize: 14 },
   bioHint: {
     flexDirection: 'row',
     alignItems: 'center',

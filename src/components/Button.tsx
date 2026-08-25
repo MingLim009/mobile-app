@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -41,6 +42,8 @@ export function Button({
         styles[variant],
         pressed && !isDisabled && styles.pressed,
         isDisabled && styles.disabled,
+        // @ts-expect-error web cursor
+        !isDisabled && Platform.OS === 'web' ? { cursor: 'pointer' } : null,
         style,
       ]}
     >

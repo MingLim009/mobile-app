@@ -181,13 +181,10 @@ export function RootNavigator() {
   const { user } = useApp();
 
   return (
-    <NavigationContainer>
+    <NavigationContainer key={user ? 'app' : 'auth'}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <>
-            <RootStack.Screen name="Main" component={MainTabs} />
-            <RootStack.Screen name="Auth" component={AuthNavigator} />
-          </>
+          <RootStack.Screen name="Main" component={MainTabs} />
         ) : (
           <RootStack.Screen name="Auth" component={AuthNavigator} />
         )}
